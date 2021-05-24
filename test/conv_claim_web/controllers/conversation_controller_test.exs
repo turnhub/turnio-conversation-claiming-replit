@@ -42,11 +42,15 @@ defmodule ConvClaimWeb.ConversationControllerTest do
       |> post(
         Routes.conversation_path(conn, :create),
         Jason.encode!(%{
-          "to" => "27123456789",
-          "type" => "text",
-          "text" => %{
-            "body" => "hello world"
-          }
+          "messages" => [
+            %{
+              "from" => "27123456789",
+              "type" => "text",
+              "text" => %{
+                "body" => "hello world"
+              }
+            }
+          ]
         })
       )
       |> response(201)
