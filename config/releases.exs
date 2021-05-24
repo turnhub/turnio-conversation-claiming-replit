@@ -4,7 +4,7 @@
 # remember to add this file to your .gitignore.
 import Config
 
-config :turn_fallback, ConvClaimWeb.Endpoint,
+config :conv_claim, ConvClaimWeb.Endpoint,
   http: [
     port: String.to_integer(System.get_env("PORT") || "4000"),
     transport_options: [socket_opts: [:inet6]]
@@ -21,7 +21,7 @@ config :turn_fallback, ConvClaimWeb.Endpoint,
 # If you are doing OTP releases, you need to instruct Phoenix
 # to start each relevant endpoint:
 #
-config :turn_fallback, ConvClaimWeb.Endpoint, server: true
+config :conv_claim, ConvClaimWeb.Endpoint, server: true
 #
 # Then you can assemble a release by calling `mix release`.
 # See `mix help release` for more information.
