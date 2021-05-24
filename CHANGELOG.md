@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.3
+* Fix bugs in protocol
+
 ## 0.1.2
 * Add debug output
 
