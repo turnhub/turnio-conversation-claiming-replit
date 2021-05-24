@@ -44,7 +44,8 @@ defmodule ConvClaim.MixProject do
       {:ecto, "~> 3.6"},
       {:finch, "~> 0.7.0"},
       {:tesla, "~> 1.4.0"},
-      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false}
+      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
+      {:eliver, "~> 2.0", only: :dev}
     ]
   end
 
@@ -56,7 +57,8 @@ defmodule ConvClaim.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get"]
+      setup: ["deps.get"],
+      version: ["eliver.bump"]
     ]
   end
 end
