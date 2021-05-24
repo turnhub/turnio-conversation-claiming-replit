@@ -1,0 +1,87 @@
+timeout: 1800s
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        docker pull gcr.io/$PROJECT_ID/turnio-conversation-claiming:prd-latest || exit 0
+        docker pull elixir:1.11-alpine || exit 0
+  - id: "rebuild dep cache"
+    name: "gcr.io/cloud-builders/docker"
+    timeout: 900s
+    args:
+      [
+        "build",
+        "--cache-from",
+        "elixir:1.11-alpine",
+        "--cache-from",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:prd-latest",
+        "-t",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:prd-latest",
+        "-f",
+        "Dockerfile.cache",
+        ".",
+      ]
+  - id: "build prd image"
+    name: "gcr.io/cloud-builders/docker"
+    timeout: 900s
+    args:
+      [
+        "build",
+        "--cache-from",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:prd-latest",
+        "-t",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:$TAG_NAME",
+        "-f",
+        "Dockerfile",
+        ".",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/turnio-conversation-claiming:$TAG_NAME"]
+
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/turnio-conversation-claiming:prd-latest"]
+
+  # Deploy container image to Cloud Run
+  - id: "deploy prd service"
+    name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "gcloud"
+    args:
+      [
+        "run",
+        "deploy",
+        "${_SERVICE_NAME}",
+        "--platform",
+        "managed",
+        "--region",
+        "${_REGION}",
+        "--allow-unauthenticated",
+        "--image",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:$TAG_NAME",
+      ]
+
+  # Force the new revision to serve 100% of traffic.
+  - id: "ensure prd service live"
+    name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "gcloud"
+    args:
+      [
+        "run",
+        "services",
+        "update-traffic",
+        "${_SERVICE_NAME}",
+        "--to-latest",
+        "--platform",
+        "managed",
+        "--region",
+        "${_REGION}",
+      ]
+
+substitutions:
+  _SERVICE_NAME: turnio-conversation-claiming-prd
+  _REGION: europe-west1
+
+images:
+  - gcr.io/$PROJECT_ID/turnio-conversation-claiming:$TAG_NAME
+  - gcr.io/$PROJECT_ID/turnio-conversation-claiming:prd-latest

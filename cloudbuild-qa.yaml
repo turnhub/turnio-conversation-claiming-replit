@@ -1,0 +1,94 @@
+timeout: 1800s
+steps:
+  - id: "pull cache"
+    name: "gcr.io/cloud-builders/docker"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        docker pull gcr.io/$PROJECT_ID/turnio-conversation-claiming:qa-latest || exit 0
+        docker pull elixir:1.11-alpine || exit 0
+  - id: "rebuild dep cache"
+    name: "gcr.io/cloud-builders/docker"
+    timeout: 900s
+    args:
+      [
+        "build",
+        "--cache-from",
+        "elixir:1.11-alpine",
+        "--cache-from",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:qa-latest",
+        "-t",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:qa-latest",
+        "-f",
+        "Dockerfile.cache",
+        ".",
+      ]
+
+  - id: "build qa image"
+    name: "gcr.io/cloud-builders/docker"
+    timeout: 900s
+    args:
+      [
+        "build",
+        "--cache-from",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:qa-latest",
+        "-t",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:1.0.0-qa$SHORT_SHA",
+        "-f",
+        "Dockerfile",
+        ".",
+      ]
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:1.0.0-qa$SHORT_SHA",
+      ]
+
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/turnio-conversation-claiming:qa-latest"]
+
+  # Deploy container image to Cloud Run
+  - id: "deploy qa service"
+    name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "gcloud"
+    args:
+      [
+        "run",
+        "deploy",
+        "${_SERVICE_NAME}",
+        "--platform",
+        "managed",
+        "--region",
+        "${_REGION}",
+        "--allow-unauthenticated",
+        "--image",
+        "gcr.io/$PROJECT_ID/turnio-conversation-claiming:1.0.0-qa$SHORT_SHA",
+      ]
+
+  # Force the new revision to serve 100% of traffic.
+  - id: "ensure qa service live"
+    name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "gcloud"
+    args:
+      [
+        "run",
+        "services",
+        "update-traffic",
+        "${_SERVICE_NAME}",
+        "--to-latest",
+        "--platform",
+        "managed",
+        "--region",
+        "${_REGION}",
+      ]
+
+substitutions:
+  _SERVICE_NAME: turnio-conversation-claiming-qa
+  _REGION: europe-west1
+
+images:
+  - gcr.io/$PROJECT_ID/turnio-conversation-claiming:1.0.0-qa$SHORT_SHA
+  - gcr.io/$PROJECT_ID/turnio-conversation-claiming:qa-latest
