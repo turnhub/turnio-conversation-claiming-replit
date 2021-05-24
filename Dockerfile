@@ -1,4 +1,4 @@
-FROM gcr.io/turn-services/turn-conversation-claiming:qa-latest as build
+FROM gcr.io/turn-services/turnio-conversation-claiming:qa-latest as build
 
 # prepare build dir
 WORKDIR /app
