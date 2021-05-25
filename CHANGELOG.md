@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.5
+* handle webhooks better
+
 ## 0.1.4
 * better logging and increased pool-size
 
