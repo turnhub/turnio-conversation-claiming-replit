@@ -22,6 +22,7 @@ defmodule ConvClaim.TurnClient do
 
     middleware = [
       {Tesla.Middleware.BaseUrl, turn_host},
+      {Tesla.Middleware.Timeout, [timeout: 5_000]},
       Tesla.Middleware.JSON,
       {Tesla.Middleware.Headers, [{"authorization", "Bearer " <> turn_token}]}
     ]

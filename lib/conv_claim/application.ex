@@ -15,7 +15,13 @@ defmodule ConvClaim.Application do
       ConvClaimWeb.Endpoint,
       # Start a worker by calling: ConvClaim.Worker.start_link(arg)
       # {ConvClaim.Worker, arg},
-      {Finch, name: ConvClaimFinch}
+      {Finch,
+       name: ConvClaimFinch,
+       pools: %{
+         # Cloud run's configured at 80 maximum concurrent connections
+         # setting it to 160 should be plenty
+         :default => [size: 160]
+       }}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

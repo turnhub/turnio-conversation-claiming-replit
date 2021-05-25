@@ -1,5 +1,6 @@
 defmodule ConvClaimWeb.ConversationController do
   use ConvClaimWeb, :controller
+  require Logger
   alias ConvClaim.TurnClient
   action_fallback(ConvClaimWeb.FallbackController)
 
@@ -18,16 +19,22 @@ defmodule ConvClaimWeb.ConversationController do
       |> Plug.Conn.send_resp(201, "ok")
     else
       {:ok, %Tesla.Env{status: status}} ->
+        Logger.error("Got a non 200 response code from Turn: #{inspect(status)}")
+
         conn
         |> put_status(status)
         |> Plug.Conn.send_resp(status, "Turn response code")
 
       {:error, %Tesla.Env{status: status}} ->
+        Logger.error("Got an error response code from Turn: #{inspect(status)}")
+
         conn
         |> put_status(status)
         |> Plug.Conn.send_resp(status, "Turn response code")
 
       {:error, reason} ->
+        Logger.error("Got an networking error from Finch: #{inspect(reason)}")
+
         conn
         |> put_status(503)
         |> Plug.Conn.send_resp(503, "Turn error: #{inspect(reason)}")
