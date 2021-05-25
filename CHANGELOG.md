@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.4
+* better logging and increased pool-size
+
 ## 0.1.3
 * Fix bugs in protocol
 
