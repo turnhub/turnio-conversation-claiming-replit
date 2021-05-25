@@ -40,4 +40,10 @@ defmodule ConvClaimWeb.ConversationController do
         |> Plug.Conn.send_resp(503, "Turn error: #{inspect(reason)}")
     end
   end
+
+  def create(conn, _params) do
+    conn
+    |> put_status(200)
+    |> Plug.Conn.send_resp(200, "ok")
+  end
 end
